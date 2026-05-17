@@ -74,57 +74,57 @@ repos --help    # quick inline help
 
 ### 📊 Sample output
 
-> The colours below render exactly as they appear in the terminal.
-
 #### `repos` — scan all repos
 
-```ansi
-[35m  [apps][0m
-[36m  #    Name                                   Branch               Status         Remote[0m
-[90m  --   --------------------------------------  --------------------  -------------- ------------------[0m
-[32m    1  api-gateway                            main                 Clean           Up to date[0m
-[33m    2  web-app                                feature/login        Dirty (3)       Ahead (2)[0m
-[31m    3  mobile-app                             main                 Clean           Behind (1)[0m
+```
+  [apps]
+  #    Name                                   Branch               Status         Remote
+  --   --------------------------------------  --------------------  -------------- ------------------
+    1  api-gateway                            main                 Clean           Up to date
+    2  web-app                                feature/login        Dirty (3)       Ahead (2)
+    3  mobile-app                             main                 Clean           Behind (1)
 
-[35m  [packages][0m
-[36m  #    Name                                   Branch               Status         Remote[0m
-[90m  --   --------------------------------------  --------------------  -------------- ------------------[0m
-[32m    4  ui-components                          main                 Clean           Up to date[0m
-[33m    5  shared-utils                           main                 Dirty (1)       Up to date[0m
+  [packages]
+  #    Name                                   Branch               Status         Remote
+  --   --------------------------------------  --------------------  -------------- ------------------
+    4  ui-components                          main                 Clean           Up to date
+    5  shared-utils                           main                 Dirty (1)       Up to date
 
-[36mTotal: 5  |  Clean: 3  |  Dirty: 2  |  Behind: 1  (use -Fetch / --fetch to refresh remote state)[0m
+  Total: 5  |  Clean: 3  |  Dirty: 2  |  Behind: 1  (use -Fetch / --fetch to refresh remote state)
 ```
 
 #### `repos -Pull` / `repos --pull`
 
-```ansi
-[35m  [apps][0m
-[36m  #    Name                                   Branch               Status         Pull[0m
-[90m  --   --------------------------------------  --------------------  -------------- ------------------[0m
-[32m    1  api-gateway                            main                 Clean           Up to date[0m
-[33m    2  web-app                                feature/login        Dirty (3)       Up to date[0m
-[36m    3  mobile-app                             main                 Clean           Pulled[0m
+```
+  [apps]
+  #    Name                                   Branch               Status         Pull
+  --   --------------------------------------  --------------------  -------------- ------------------
+    1  api-gateway                            main                 Clean           Up to date
+    2  web-app                                feature/login        Dirty (3)       Up to date
+    3  mobile-app                             main                 Clean           Pulled
 
-[35m  [packages][0m
-[36m  #    Name                                   Branch               Status         Pull[0m
-[90m  --   --------------------------------------  --------------------  -------------- ------------------[0m
-[32m    4  ui-components                          main                 Clean           Up to date[0m
-[33m    5  shared-utils                           main                 Dirty (1)       Up to date[0m
+  [packages]
+  #    Name                                   Branch               Status         Pull
+  --   --------------------------------------  --------------------  -------------- ------------------
+    4  ui-components                          main                 Clean           Up to date
+    5  shared-utils                           main                 Dirty (1)       Up to date
 
-[36mTotal: 5  |  Pulled: 1  |  Up to date: 4  |  Errors: 0[0m
+  Total: 5  |  Pulled: 1  |  Up to date: 4  |  Errors: 0
 ```
 
 ---
 
 ### 🎨 Color legend
 
+Row colours in the actual terminal output:
+
 | Color | Meaning |
 |-------|---------|
-| 🟢 **Green** | Clean and in sync with remote |
-| 🟡 **Yellow** | Dirty — has uncommitted local changes |
-| 🔴 **Red** | Behind remote — needs a pull |
-| 🔵 **Cyan** | Successfully pulled (with `-Pull` / `--pull`) |
-| 🟣 **Magenta** | Category group header |
+| 🟢 Green | Clean and in sync with remote |
+| 🟡 Yellow | Dirty — has uncommitted local changes |
+| 🔴 Red | Behind remote — needs a pull |
+| 🔵 Cyan | Successfully pulled (with `-Pull` / `--pull`) |
+| 🟣 Magenta | Category group header |
 
 ### 📐 Output columns
 
