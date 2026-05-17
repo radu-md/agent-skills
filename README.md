@@ -4,19 +4,7 @@ Personal collection of AI agent skills (`SKILL.md`) for sharing with teammates. 
 
 ## How to install a skill
 
-### Claude Code
-
-Copy the skill folder into your personal Claude skills directory:
-
-```powershell
-Copy-Item -Recurse skills\scan-repos-generator "$env:USERPROFILE\.claude\skills\scan-repos-generator"
-```
-
-### Other agents
-
 Check your agent's documentation for the skills directory path, then copy the skill folder there. The `SKILL.md` format is the same across all supported agents.
-
-Or clone the whole repo and copy any skill you need.
 
 ## Skills
 
