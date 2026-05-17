@@ -60,8 +60,6 @@ The agent scans the workspace root, shows you the discovered category folders fo
 repos                 # scan all repos — branch, clean/dirty, last-known remote state
 repos -Fetch          # fetch remotes first for accurate Behind/Ahead numbers, then scan
 repos -Pull           # pull every repo and report what changed
-repos -Help           # quick inline help
-Get-Help repos -Full  # full PowerShell help
 ```
 
 **Bash / Zsh**
@@ -69,7 +67,6 @@ Get-Help repos -Full  # full PowerShell help
 repos           # scan all repos — branch, clean/dirty, last-known remote state
 repos --fetch   # fetch remotes first for accurate Behind/Ahead numbers, then scan
 repos --pull    # pull every repo and report what changed
-repos --help    # quick inline help
 ```
 
 ---
