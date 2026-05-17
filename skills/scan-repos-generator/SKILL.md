@@ -1,6 +1,6 @@
 ---
 name: scan-repos-generator
-description: Use when a teammate wants to install a workspace repos-scanner PowerShell function, or when adapting the repos scanner to a different workspace root or folder structure.
+description: Use when a teammate wants to install a workspace repos-scanner shell function (PowerShell, Bash, or Zsh), or when adapting the repos scanner to a different workspace root or folder structure.
 ---
 
 # Workspace Repos Scanner – Generator
@@ -9,7 +9,7 @@ description: Use when a teammate wants to install a workspace repos-scanner Powe
 
 Works with any AI agent that supports the [agentskills.io](https://agentskills.io/specification) skill format (Claude Code, Gemini CLI, Copilot CLI, and others).
 
-Interactively generates and installs a PowerShell function that scans all Git repositories under a workspace root, grouped by subfolder, reporting branch, clean/dirty status, and remote sync state. Categories are **auto-discovered** from the filesystem — no manual listing needed.
+Interactively generates and installs a shell function — **PowerShell, Bash, or Zsh** — that scans all Git repositories under a workspace root, grouped by subfolder, reporting branch, clean/dirty status, and remote sync state in a colour-coded table. Categories are **auto-discovered** from the filesystem — no manual listing needed.
 
 ## Setup Flow
 
@@ -18,16 +18,30 @@ Ask these questions **before** generating any code. If the user skips a question
 | # | Question | Default |
 |---|----------|---------|
 | 1 | **Workspace root** — full path to the folder whose subfolders contain repos | _(required — no default)_ |
-| 2 | **Function name** — what to call the PowerShell function | `repos` |
-| 3 | **Install target** — `profile` (append to `$PROFILE`), `file` (standalone `.ps1`), or `show` (print only) | `show` |
+| 2 | **Function name** — what to call the shell function | `repos` |
+| 3 | **Shell** — `pwsh` (PowerShell), `bash`, or `zsh` | `pwsh` |
+| 4 | **Install target** — `profile`, `file`, or `show` | `show` |
 
-After collecting answers, **discover categories automatically**:
+After collecting answers, **discover categories automatically**. Run the appropriate command for the user's shell:
 
+**PowerShell:**
 ```powershell
 # Run this to preview which subfolders contain git repos
 Get-ChildItem -Directory '<WORKSPACE_ROOT>' |
-    Where-Object { Get-ChildItem -Directory $_.FullName | Where-Object { Test-Path "$($_.FullName)\.git" } } |
+    Where-Object { Get-ChildItem -Directory $_.FullName -ErrorAction SilentlyContinue |
+                   Where-Object { Test-Path (Join-Path $_.FullName '.git') } } |
     Select-Object -ExpandProperty Name
+```
+
+**Bash / Zsh:**
+```bash
+# Run this to preview which subfolders contain git repos
+for d in '<WORKSPACE_ROOT>'/*/; do
+    [[ -d "$d" ]] || continue
+    if find "$d" -maxdepth 2 -name '.git' -type d 2>/dev/null | grep -q .; then
+        printf '%s\n' "$(basename "${d%/}")"
+    fi
+done
 ```
 
 Show the discovered list to the user and ask: **"Are these the right category folders? Any to exclude?"**
@@ -36,7 +50,9 @@ Then confirm all choices before generating.
 
 ## Generated Output
 
-Replace placeholders with the user's answers and emit the function.
+Replace placeholders with the user's answers and emit the function for the chosen shell.
+
+### PowerShell
 
 ```powershell
 function <FUNCTION_NAME> {
@@ -86,13 +102,13 @@ function <FUNCTION_NAME> {
     # Auto-discover category subfolders that contain at least one git repo
     $Categories = Get-ChildItem -Directory $Base |
         Where-Object { Get-ChildItem -Directory $_.FullName -ErrorAction SilentlyContinue |
-                       Where-Object { Test-Path "$($_.FullName)\.git" } } |
+                       Where-Object { Test-Path (Join-Path $_.FullName '.git') } } |
         Select-Object -ExpandProperty Name
 
     $allDirs = @(foreach ($cat in $Categories) {
         $catPath = Join-Path $Base $cat
         Get-ChildItem -Directory $catPath |
-            Where-Object { Test-Path "$($_.FullName)\.git" } |
+            Where-Object { Test-Path (Join-Path $_.FullName '.git') } |
             ForEach-Object { [PSCustomObject]@{ Dir = $_; Category = $cat } }
     })
 
@@ -191,7 +207,138 @@ function <FUNCTION_NAME> {
 }
 ```
 
+### Bash / Zsh
+
+```bash
+<FUNCTION_NAME>() {
+    local base='<WORKSPACE_ROOT>'
+    local do_fetch=false do_pull=false
+
+    for arg in "$@"; do
+        case "$arg" in
+            -f|--fetch) do_fetch=true ;;
+            -p|--pull)  do_pull=true ;;
+            -h|--help)
+                printf '\n  Usage: <FUNCTION_NAME> [-f|--fetch] [-p|--pull] [-h|--help]\n\n'
+                printf '  (no flags)   Show branch, status, and last-known remote state\n'
+                printf '  -f, --fetch  Fetch all remotes first for accurate Behind/Ahead counts\n'
+                printf '  -p, --pull   Pull every repo and report Pulled / Up to date / Error\n'
+                printf '  -h, --help   Show this help\n\n'
+                return ;;
+        esac
+    done
+
+    local red=$'\033[31m' green=$'\033[32m' yellow=$'\033[33m'
+    local cyan=$'\033[36m' magenta=$'\033[35m' gray=$'\033[90m' rst=$'\033[0m'
+
+    # Auto-discover category subfolders that contain at least one git repo
+    local categories=()
+    for d in "$base"/*/; do
+        [[ -d "$d" ]] || continue
+        if find "$d" -maxdepth 2 -name '.git' -type d 2>/dev/null | grep -q .; then
+            categories+=("$(basename "${d%/}")")
+        fi
+    done
+
+    # Count total repos
+    local total=0
+    for cat in "${categories[@]}"; do
+        for repo in "$base/$cat"/*/; do
+            [[ -d "${repo}.git" ]] && (( total++ )) || true
+        done
+    done
+
+    local i=0 clean=0 dirty=0 behind_count=0 pulled=0 errors=0 uptodate_pull=0
+    local remote_header
+    if $do_pull; then remote_header='Pull'; else remote_header='Remote'; fi
+    local fmt='%3s  %-38s %-20s %-14s %s'
+    local dash38 dash20 dash14 dash18
+    dash38=$(printf '%.0s-' {1..38}); dash20=$(printf '%.0s-' {1..20})
+    dash14=$(printf '%.0s-' {1..14}); dash18=$(printf '%.0s-' {1..18})
+
+    for cat in "${categories[@]}"; do
+        local first_in_cat=true
+        for repo in "$base/$cat"/*/; do
+            [[ -d "${repo}.git" ]] || continue
+
+            if $first_in_cat; then
+                first_in_cat=false
+                printf '\n'
+                printf "${magenta}  [%s]${rst}\n" "$cat"
+                printf "${cyan}${fmt}${rst}\n" '#' 'Name' 'Branch' 'Status' "$remote_header"
+                printf "${gray}${fmt}${rst}\n" '--' "$dash38" "$dash20" "$dash14" "$dash18"
+            fi
+
+            (( i++ )) || true
+            local name branch raw count status remote pull_result=''
+            name=$(basename "${repo%/}")
+            branch=$(git -C "$repo" rev-parse --abbrev-ref HEAD 2>/dev/null) || branch='N/A'
+
+            raw=$(git -C "$repo" status --porcelain 2>/dev/null)
+            count=0
+            [[ -n "$raw" ]] && count=$(printf '%s\n' "$raw" | grep -c .) || true
+
+            if [[ $count -eq 0 ]]; then
+                status='Clean';          (( clean++ ))  || true
+            else
+                status="Dirty ($count)"; (( dirty++ ))  || true
+            fi
+
+            if $do_pull; then
+                local pull_out pull_exit
+                pull_out=$(git -C "$repo" pull 2>&1); pull_exit=$?
+                if   [[ $pull_exit -ne 0 ]]; then
+                    pull_result='Error';      (( errors++ ))        || true
+                elif printf '%s' "$pull_out" | grep -q 'Already up to date'; then
+                    pull_result='Up to date'; (( uptodate_pull++ )) || true
+                else
+                    pull_result='Pulled';     (( pulled++ ))        || true
+                fi
+            elif $do_fetch; then
+                git -C "$repo" fetch --quiet 2>/dev/null || true
+            fi
+
+            local upstream=''
+            upstream=$(git -C "$repo" rev-parse --abbrev-ref '@{u}' 2>/dev/null) || true
+            remote='No remote'
+            if [[ -n "$upstream" ]]; then
+                local behind=0 ahead=0
+                behind=$(git -C "$repo" rev-list --count "HEAD..@{u}" 2>/dev/null) || behind=0
+                ahead=$(git -C "$repo"  rev-list --count "@{u}..HEAD"  2>/dev/null) || ahead=0
+                if   [[ $behind -gt 0 && $ahead -gt 0 ]]; then remote="Diverged (+$ahead/-$behind)"
+                elif [[ $behind -gt 0 ]]; then remote="Behind ($behind)"; (( behind_count++ )) || true
+                elif [[ $ahead  -gt 0 ]]; then remote="Ahead ($ahead)"
+                else                           remote='Up to date'; fi
+            fi
+
+            local display_remote color
+            if $do_pull; then display_remote="$pull_result"; else display_remote="$remote"; fi
+            if   $do_pull && [[ "$pull_result" == 'Error'  ]]; then color="$red"
+            elif $do_pull && [[ "$pull_result" == 'Pulled' ]]; then color="$cyan"
+            elif [[ "$remote" == Behind* ]];                   then color="$red"
+            elif [[ $count -ne 0 ]];                           then color="$yellow"
+            else                                                    color="$green"; fi
+
+            printf "${color}${fmt}${rst}\n" "$i" "$name" "$branch" "$status" "$display_remote"
+        done
+    done
+
+    printf '\n'
+    if $do_pull; then
+        printf "${cyan}Total: %d  |  Pulled: %d  |  Up to date: %d  |  Errors: %d${rst}\n" \
+            "$total" "$pulled" "$uptodate_pull" "$errors"
+    else
+        local fetch_note=''
+        $do_fetch || fetch_note='  (use --fetch to refresh remote state)'
+        printf "${cyan}Total: %d  |  Clean: %d  |  Dirty: %d  |  Behind: %d%s${rst}\n" \
+            "$total" "$clean" "$dirty" "$behind_count" "$fetch_note"
+    fi
+}
+```
+
 ## Install Steps
+
+### PowerShell
 
 **`profile`** — Append to the user's PowerShell profile:
 ```powershell
@@ -205,31 +352,49 @@ Then type the function name (e.g. `repos`) and press Enter — that's all.
 # Add to $PROFILE:
 . "C:\path\to\repos-scanner.ps1"
 ```
-Then run `. $PROFILE` and type the function name to use it.
+Then run `. $PROFILE`.
 
-**`show`** — Print the generated function only; the user copies it manually into their profile or a script file, then runs `. $PROFILE`.
+**`show`** — Print the generated function only; the user pastes it into their profile or a script file, then runs `. $PROFILE`.
+
+### Bash / Zsh
+
+**`profile`** — Append to the shell profile and reload:
+```bash
+# Bash:
+printf '\n<generated function>\n' >> ~/.bashrc && source ~/.bashrc
+
+# Zsh:
+printf '\n<generated function>\n' >> ~/.zshrc && source ~/.zshrc
+```
+
+**`file`** — Write to a `.sh` file and add a source line to the profile:
+```bash
+# Add to ~/.bashrc or ~/.zshrc:
+source "/path/to/repos-scanner.sh"
+```
+Then reload the profile with `source ~/.bashrc` (or `~/.zshrc`).
+
+**`show`** — Print the generated function only; the user pastes it into their shell profile and reloads with `source ~/.bashrc` (or `~/.zshrc`).
 
 ---
 
 ## How to Use the Installed Function
 
-After installation, reload the profile with `. $PROFILE` and use:
-
+**PowerShell:**
 ```powershell
-# Scan all repos — branch, clean/dirty, last-known remote state
-<function-name>
+<function-name>                  # scan all repos
+<function-name> -Fetch           # fetch remotes first
+<function-name> -Pull            # pull all repos
+<function-name> -Help            # quick help
+Get-Help <function-name> -Full   # full PowerShell help
+```
 
-# Fetch remotes first for accurate Behind/Ahead numbers, then scan
-<function-name> -Fetch
-
-# Pull every repo and report what changed
-<function-name> -Pull
-
-# Quick inline help
-<function-name> -Help
-
-# Full PowerShell help (synopsis, parameters, examples)
-Get-Help <function-name> -Full
+**Bash / Zsh:**
+```bash
+<function-name>            # scan all repos
+<function-name> --fetch    # fetch remotes first
+<function-name> --pull     # pull all repos
+<function-name> --help     # quick help
 ```
 
 **Output columns:**
@@ -248,4 +413,4 @@ Get-Help <function-name> -Full
 | Green | Clean and in sync |
 | Yellow | Dirty (uncommitted changes) |
 | Red | Behind remote (needs pull) |
-| Cyan | Successfully pulled (with `-Pull`) |
+| Cyan | Successfully pulled (with `-Pull` / `--pull`) |
