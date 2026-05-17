@@ -44,25 +44,19 @@ Claude will ask you three questions:
 |----------|---------|
 | Workspace root — full path to the folder whose subfolders contain repos | _(required)_ |
 | Function name — what to call the PowerShell function | `repos` |
-| Install target — `profile`, `file`, or `show` | `show` |
+| Install target — see options below | `show` |
 
 Claude then scans the workspace root to discover category subfolders automatically, shows you the list for confirmation, and generates the tailored function.
 
 ### Step 2 — Install
 
-**`profile`** (recommended) — Claude appends the function to your PowerShell profile and reloads it:
+Choose one of three install targets when Claude asks:
 
-```powershell
-. $PROFILE
-```
+- **`profile`** _(recommended)_ — Claude appends the function directly to your PowerShell profile (`$PROFILE`) and reloads it with `. $PROFILE`. The function is available immediately in the current session and every future one.
 
-**`file`** — Claude writes a standalone `.ps1` and adds a dot-source line to your `$PROFILE`, then reloads:
+- **`file`** — Claude writes the function to a standalone `.ps1` file of your choice and adds a dot-source line to your `$PROFILE`. Useful if you prefer to keep your profile clean and manage scripts separately.
 
-```powershell
-. $PROFILE
-```
-
-**`show`** — Claude prints the function so you can copy it manually into your profile or a script file, then run `. $PROFILE`.
+- **`show`** — Claude prints the generated function code in the chat without writing anything to disk. Use this if you want to review the code first, make manual edits, or paste it yourself into an existing script.
 
 ### Step 3 — Use it
 
