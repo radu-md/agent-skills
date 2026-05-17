@@ -7,6 +7,8 @@ description: Use when a teammate wants to install a workspace repos-scanner Powe
 
 ## Overview
 
+Works with any AI agent that supports the [agentskills.io](https://agentskills.io/specification) skill format (Claude Code, Gemini CLI, Copilot CLI, and others).
+
 Interactively generates and installs a PowerShell function that scans all Git repositories under a workspace root, grouped by subfolder, reporting branch, clean/dirty status, and remote sync state. Categories are **auto-discovered** from the filesystem — no manual listing needed.
 
 ## Setup Flow

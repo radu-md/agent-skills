@@ -1,14 +1,20 @@
-# claude-skills
+# agent-skills
 
-Personal collection of Claude Code skills (`SKILL.md`) for sharing with teammates.
+Personal collection of AI agent skills (`SKILL.md`) for sharing with teammates. Works with any agent that supports the [agentskills.io](https://agentskills.io/specification) skill format — Claude Code, Gemini CLI, Copilot CLI, and others.
 
 ## How to install a skill
+
+### Claude Code
 
 Copy the skill folder into your personal Claude skills directory:
 
 ```powershell
 Copy-Item -Recurse skills\scan-repos-generator "$env:USERPROFILE\.claude\skills\scan-repos-generator"
 ```
+
+### Other agents
+
+Check your agent's documentation for the skills directory path, then copy the skill folder there. The `SKILL.md` format is the same across all supported agents.
 
 Or clone the whole repo and copy any skill you need.
 
@@ -20,7 +26,7 @@ Or clone the whole repo and copy any skill you need.
 
 ## Usage
 
-After copying a skill to `~/.claude/skills/`, it becomes available immediately in Claude Code — no restart needed.
+After copying a skill to the agent's skills directory, it becomes available immediately — no restart needed.
 
 ---
 
@@ -30,15 +36,15 @@ After copying a skill to `~/.claude/skills/`, it becomes available immediately i
 
 Generates a PowerShell function that scans all Git repositories under your workspace root, grouped by subfolder, and reports branch, clean/dirty status, and remote sync state in a colour-coded table. Category subfolders are **auto-discovered** — no manual configuration needed.
 
-### Step 1 — Generate the script with Claude Code
+### Step 1 — Generate the script
 
-Open Claude Code in any project and type:
+Open your AI agent in any project and type:
 
 ```
 /scan-repos-generator
 ```
 
-Claude will ask you three questions:
+The agent will ask you three questions:
 
 | Question | Default |
 |----------|---------|
@@ -46,17 +52,17 @@ Claude will ask you three questions:
 | Function name — what to call the PowerShell function | `repos` |
 | Install target — see options below | `show` |
 
-Claude then scans the workspace root to discover category subfolders automatically, shows you the list for confirmation, and generates the tailored function.
+The agent then scans the workspace root to discover category subfolders automatically, shows you the list for confirmation, and generates the tailored function.
 
 ### Step 2 — Install
 
-Choose one of three install targets when Claude asks:
+Choose one of three install targets when the agent asks:
 
-- **`profile`** _(recommended)_ — Claude appends the function directly to your PowerShell profile (`$PROFILE`) and reloads it with `. $PROFILE`. The function is available immediately in the current session and every future one.
+- **`profile`** _(recommended)_ — The agent appends the function directly to your PowerShell profile (`$PROFILE`) and reloads it with `. $PROFILE`. The function is available immediately in the current session and every future one.
 
-- **`file`** — Claude writes the function to a standalone `.ps1` file of your choice and adds a dot-source line to your `$PROFILE`. Useful if you prefer to keep your profile clean and manage scripts separately.
+- **`file`** — The agent writes the function to a standalone `.ps1` file of your choice and adds a dot-source line to your `$PROFILE`. Useful if you prefer to keep your profile clean and manage scripts separately.
 
-- **`show`** — Claude prints the generated function code in the chat without writing anything to disk. Use this if you want to review the code first, make manual edits, or paste it yourself into an existing script.
+- **`show`** — The agent prints the generated function code in the chat without writing anything to disk. Use this if you want to review the code first, make manual edits, or paste it yourself into an existing script.
 
 ### Step 3 — Use it
 
@@ -77,6 +83,46 @@ repos -Help
 
 # Full PowerShell help
 Get-Help repos -Full
+```
+
+### Sample output
+
+#### `repos` (no flags)
+
+```
+  [apps]
+  #   Name                                   Branch               Status         Remote
+  --  --------------------------------------  --------------------  --------------  ------------------
+    1  api-gateway                            main                 Clean           Up to date
+    2  web-app                                feature/login        Dirty (3)       Ahead (2)
+    3  mobile-app                             main                 Clean           Behind (1)
+
+  [packages]
+  #   Name                                   Branch               Status         Remote
+  --  --------------------------------------  --------------------  --------------  ------------------
+    4  ui-components                          main                 Clean           Up to date
+    5  shared-utils                           main                 Dirty (1)       Up to date
+
+Total: 5  |  Clean: 3  |  Dirty: 2  |  Behind: 1  (use -Fetch to refresh remote state)
+```
+
+#### `repos -Pull`
+
+```
+  [apps]
+  #   Name                                   Branch               Status         Pull
+  --  --------------------------------------  --------------------  --------------  ------------------
+    1  api-gateway                            main                 Clean           Up to date
+    2  web-app                                feature/login        Dirty (3)       Up to date
+    3  mobile-app                             main                 Clean           Pulled
+
+  [packages]
+  #   Name                                   Branch               Status         Pull
+  --  --------------------------------------  --------------------  --------------  ------------------
+    4  ui-components                          main                 Clean           Up to date
+    5  shared-utils                           main                 Dirty (1)       Up to date
+
+Total: 5  |  Pulled: 1  |  Up to date: 4  |  Errors: 0
 ```
 
 **Output columns:**
