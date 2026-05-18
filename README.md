@@ -12,26 +12,29 @@ Copy the skill folder into your agent's personal skills directory. The `SKILL.md
 
 | Agent | Personal skills directory |
 |-------|--------------------------|
+| **Any agent** ⭐ | `~/.agents/skills/` — universal path, works across all supporting agents |
 | **Claude Code** | `~/.claude/skills/` |
 | **GitHub Copilot CLI** | `~/.copilot/skills/` |
 | **Gemini CLI** | `~/.gemini/skills/` |
 
 **Example (all platforms):**
 ```bash
-# Claude Code
-cp -r skills/scan-repos-generator ~/.claude/skills/
+# Universal — works with Claude Code, Copilot CLI, Gemini CLI, and others
+cp -r skills/scan-repos-generator ~/.agents/skills/
 
-# GitHub Copilot CLI
-cp -r skills/scan-repos-generator ~/.copilot/skills/
+# Or agent-specific:
+cp -r skills/scan-repos-generator ~/.claude/skills/     # Claude Code
+cp -r skills/scan-repos-generator ~/.copilot/skills/    # GitHub Copilot CLI
 ```
 
 On Windows use `Copy-Item` instead:
 ```powershell
-# Claude Code
-Copy-Item -Recurse skills\scan-repos-generator ~\.claude\skills\
+# Universal
+Copy-Item -Recurse skills\scan-repos-generator ~\.agents\skills\
 
-# GitHub Copilot CLI
-Copy-Item -Recurse skills\scan-repos-generator ~\.copilot\skills\
+# Or agent-specific:
+Copy-Item -Recurse skills\scan-repos-generator ~\.claude\skills\    # Claude Code
+Copy-Item -Recurse skills\scan-repos-generator ~\.copilot\skills\   # GitHub Copilot CLI
 ```
 
 ## 📋 Skills
