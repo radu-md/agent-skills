@@ -87,6 +87,11 @@ function <FUNCTION_NAME> {
         [switch]$Help
     )
 
+    function Trunc([string]$s, [int]$max) {
+        if ($s.Length -le $max) { return $s.PadRight($max) }
+        return $s.Substring(0, $max - 1) + [char]0x2026  # …
+    }
+
     if ($Help) {
         Write-Host ""
         Write-Host "  Usage: <FUNCTION_NAME> [-Fetch] [-Pull] [-Help]" -ForegroundColor Cyan
@@ -169,9 +174,12 @@ function <FUNCTION_NAME> {
     $behind = ($results | Where-Object { $_.Remote -like 'Behind*' }).Count
     $pulled = ($results | Where-Object { $_.PullResult -eq 'Pulled' }).Count
 
+    # Column widths: Name=36, Branch=32, Status=14 — long values are truncated with …
+    $nW = 36; $bW = 32; $sW = 14
     $remoteHeader = if ($Pull) { 'Pull' } else { 'Remote' }
-    $header = "{0,3}  {1,-38} {2,-20} {3,-14} {4}" -f '#', 'Name', 'Branch', 'Status', $remoteHeader
-    $sep    = "{0,3}  {1,-38} {2,-20} {3,-14} {4}" -f '--', ('-'*38), ('-'*20), ('-'*14), ('-'*18)
+    $fmt    = "{0,3}  {1}  {2}  {3}  {4}"
+    $header = $fmt -f '#', ('Name'.PadRight($nW)), ('Branch'.PadRight($bW)), ('Status'.PadRight($sW)), $remoteHeader
+    $sep    = $fmt -f '--', ('-' * $nW), ('-' * $bW), ('-' * $sW), ('-' * 18)
 
     foreach ($cat in $Categories) {
         $catResults = @($results | Where-Object { $_.Category -eq $cat })
@@ -191,7 +199,7 @@ function <FUNCTION_NAME> {
                 { $r.Status -ne 'Clean'                 } { 'Yellow'; break }
                 default                                    { 'Green' }
             }
-            $line = "{0,3}  {1,-38} {2,-20} {3,-14} {4}" -f $r.'#', $r.Name, $r.Branch, $r.Status, $displayRemote
+            $line = $fmt -f $r.'#', (Trunc $r.Name $nW), (Trunc $r.Branch $bW), ($r.Status.PadRight($sW)), $displayRemote
             Write-Host $line -ForegroundColor $color
         }
     }
@@ -250,13 +258,22 @@ function <FUNCTION_NAME> {
         done
     done
 
+    # Truncate $1 to $2 chars, padding with spaces; appends … if longer
+    trunc() {
+        local s="$1" max="$2"
+        if [[ ${#s} -le $max ]]; then printf '%-*s' "$max" "$s"
+        else printf '%s\xe2\x80\xa6' "${s:0:$((max-1))}"; fi
+    }
+
     local i=0 clean=0 dirty=0 behind_count=0 pulled=0 errors=0 uptodate_pull=0
+    # Column widths: Name=36, Branch=32, Status=14 — long values are truncated with …
+    local nW=36 bW=32 sW=14
     local remote_header
     if $do_pull; then remote_header='Pull'; else remote_header='Remote'; fi
-    local fmt='%3s  %-38s %-20s %-14s %s'
-    local dash38 dash20 dash14 dash18
-    dash38=$(printf '%.0s-' {1..38}); dash20=$(printf '%.0s-' {1..20})
-    dash14=$(printf '%.0s-' {1..14}); dash18=$(printf '%.0s-' {1..18})
+    local fmt='%3s  %s  %s  %-14s %s'
+    local dashn dashb dashs dash18
+    dashn=$(printf '%.0s-' $(seq 1 $nW)); dashb=$(printf '%.0s-' $(seq 1 $bW))
+    dashs=$(printf '%.0s-' $(seq 1 $sW)); dash18=$(printf '%.0s-' {1..18})
 
     for cat in "${categories[@]}"; do
         local first_in_cat=true
@@ -267,8 +284,8 @@ function <FUNCTION_NAME> {
                 first_in_cat=false
                 printf '\n'
                 printf "${magenta}  [%s]${rst}\n" "$cat"
-                printf "${cyan}${fmt}${rst}\n" '#' 'Name' 'Branch' 'Status' "$remote_header"
-                printf "${gray}${fmt}${rst}\n" '--' "$dash38" "$dash20" "$dash14" "$dash18"
+                printf "${cyan}${fmt}${rst}\n" '#' "$(trunc 'Name' $nW)" "$(trunc 'Branch' $bW)" 'Status' "$remote_header"
+                printf "${gray}${fmt}${rst}\n" '--' "$dashn" "$dashb" "$dashs" "$dash18"
             fi
 
             (( i++ )) || true
@@ -321,7 +338,7 @@ function <FUNCTION_NAME> {
             elif [[ $count -ne 0 ]];                           then color="$yellow"
             else                                                    color="$green"; fi
 
-            printf "${color}${fmt}${rst}\n" "$i" "$name" "$branch" "$status" "$display_remote"
+            printf "${color}${fmt}${rst}\n" "$i" "$(trunc "$name" $nW)" "$(trunc "$branch" $bW)" "$status" "$display_remote"
         done
     done
 
