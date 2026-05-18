@@ -26,8 +26,11 @@ Generates a shell function — **PowerShell**, **Bash**, or **Zsh** — that sca
 
 Open your AI agent in any project and type:
 
-```
+``` Claude CLI
 /scan-repos-generator
+```
+``` Github Copilot CLI
+scan-repos-generator
 ```
 
 ### 🔧 Step 1 — Configure
