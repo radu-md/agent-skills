@@ -8,7 +8,31 @@ Personal collection of AI agent skills (`SKILL.md`) for sharing with teammates. 
 
 ## 📦 How to install a skill
 
-Check your agent's documentation for the skills directory path, then copy the skill folder there. The `SKILL.md` format is the same across all supported agents.
+Copy the skill folder into your agent's personal skills directory. The `SKILL.md` format is the same across all supported agents.
+
+| Agent | Personal skills directory |
+|-------|--------------------------|
+| **Claude Code** | `~/.claude/skills/` |
+| **GitHub Copilot CLI** | `~/.copilot/skills/` |
+| **Gemini CLI** | `~/.gemini/skills/` |
+
+**Example (all platforms):**
+```bash
+# Claude Code
+cp -r skills/scan-repos-generator ~/.claude/skills/
+
+# GitHub Copilot CLI
+cp -r skills/scan-repos-generator ~/.copilot/skills/
+```
+
+On Windows use `Copy-Item` instead:
+```powershell
+# Claude Code
+Copy-Item -Recurse skills\scan-repos-generator ~\.claude\skills\
+
+# GitHub Copilot CLI
+Copy-Item -Recurse skills\scan-repos-generator ~\.copilot\skills\
+```
 
 ## 📋 Skills
 
@@ -24,12 +48,15 @@ Generates a shell function — **PowerShell**, **Bash**, or **Zsh** — that sca
 
 ### ⚡ Quick start
 
-Open your AI agent in any project and type:
+First, install the skill (see [How to install a skill](#-how-to-install-a-skill) above), then open your agent in any directory and invoke it:
 
-``` Claude CLI
+**Claude Code** — type in chat:
+```
 /scan-repos-generator
 ```
-``` Github Copilot CLI
+
+**GitHub Copilot CLI** — type in chat:
+```
 scan-repos-generator
 ```
 
