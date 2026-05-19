@@ -45,9 +45,9 @@ Generated `repos.json` shape:
 
 ```json
 [
-  { "scope": "Faigo",    "name": "faigo",        "path": "D:\\Workspace\\Faigo\\Git\\faigo" },
-  { "scope": "Learnings","name": "BlazorApp",     "path": "D:\\Workspace\\Learnings\\Git\\BlazorApp" },
-  { "scope": "RaduMD",   "name": "agent-skills",  "path": "D:\\Workspace\\RaduMD\\Git\\agent-skills" }
+  { "scope": "Faigo",    "name": "faigo",        "path": "D:\\Workspace\\Faigo\\Git\\faigo",               "description": "Faigo website presentation." },
+  { "scope": "Learnings","name": "BlazorApp",     "path": "D:\\Workspace\\Learnings\\Git\\BlazorApp",       "description": "" },
+  { "scope": "RaduMD",   "name": "agent-skills",  "path": "D:\\Workspace\\RaduMD\\Git\\agent-skills",       "description": "Personal collection of AI agent skills..." }
 ]
 ```
 

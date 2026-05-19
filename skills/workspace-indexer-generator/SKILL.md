@@ -58,9 +58,11 @@ Replace placeholders with the user's answers and emit all three outputs.
 
 ```json
 [
-  { "scope": "<SCOPE>", "name": "<REPO_NAME>", "path": "<FULL_PATH>" }
+  { "scope": "<SCOPE>", "name": "<REPO_NAME>", "path": "<FULL_PATH>", "description": "<AUTO_DETECTED>" }
 ]
 ```
+
+Description is auto-detected in priority order: `package.json` → `description` field, then `README.md` → first non-heading paragraph line, then `""`.
 
 ### 2. PowerShell `refreshworkspace` function
 
