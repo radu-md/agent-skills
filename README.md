@@ -22,6 +22,7 @@ Copy the skill folder into your agent's personal skills directory. The `SKILL.md
 # Universal — works with Claude Code, Copilot CLI, Gemini CLI, and others
 cp -r skills/scan-repos-generator ~/.agents/skills/
 cp -r skills/listskills-generator ~/.agents/skills/
+cp -r skills/workspace-indexer-generator ~/.agents/skills/
 
 # Or agent-specific:
 cp -r skills/scan-repos-generator ~/.claude/skills/     # Claude Code
@@ -33,6 +34,7 @@ On Windows use `Copy-Item` instead:
 # Universal
 Copy-Item -Recurse skills\scan-repos-generator ~\.agents\skills\
 Copy-Item -Recurse skills\listskills-generator ~\.agents\skills\
+Copy-Item -Recurse skills\workspace-indexer-generator ~\.agents\skills\
 
 # Or agent-specific:
 Copy-Item -Recurse skills\scan-repos-generator ~\.claude\skills\    # Claude Code
@@ -45,3 +47,4 @@ Copy-Item -Recurse skills\scan-repos-generator ~\.copilot\skills\   # GitHub Cop
 |-------|-------------|
 | [scan-repos-generator](skills/scan-repos-generator/README.md) | Generates and installs a workspace repos-scanner function for PowerShell, Bash, or Zsh, auto-discovering category folders from the workspace root. |
 | [listskills-generator](skills/listskills-generator/README.md) | Generates and installs a PowerShell function that lists all globally installed agent skills in a formatted, terminal-width-aware table. |
+| [workspace-indexer-generator](skills/workspace-indexer-generator/README.md) | Generates a zero-scan workspace index (repos.json + refreshworkspace function + CLAUDE.md snippet) so AI agents resolve repo paths instantly without scanning the filesystem. |
